@@ -21,7 +21,7 @@ RUN npm install --only=production
 # Copy built artifacts from the builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/run.js ./
+
 
 # Create a volume for the captcha token
 VOLUME /app/data
