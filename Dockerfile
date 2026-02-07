@@ -22,7 +22,6 @@ RUN npm install --only=production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
 
-
 # Create a volume for the captcha token
 VOLUME /app/data
 
