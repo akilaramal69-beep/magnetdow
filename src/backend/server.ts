@@ -9,8 +9,6 @@ const server: FastifyInstance = Fastify({ logger: true });
 
 // Initialize dependencies
 import fs from 'fs';
-
-// Initialize dependencies
 const accountManager = new AccountManager();
 
 async function waitForCaptchaFile() {
@@ -33,22 +31,8 @@ server.register(fastifyStatic, {
     prefix: '/', // optional: default '/'
 });
 
-// API Routes
-server.post('/api/download', async (request, reply) => {
-    const { magnet } = request.body as { magnet: string };
-    if (!magnet) {
-        return reply.code(400).send({ error: 'Magnet link is required' });
-    }
+// API Routes handled below in the background section
 
-    try {
-        const client = accountManager.getNextClient();
-        const taskId = taskQueue.addTask(magnet, client);
-        return { id: taskId };
-    } catch (error: any) {
-        request.log.error(error);
-        return reply.code(500).send({ error: 'Failed to queue task' });
-    }
-});
 
 server.get('/api/status/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
@@ -147,9 +131,9 @@ async function initializeBackground() {
             systemReady = true;
             captchaInfo = null;
             console.log("System initialized and ready.");
-            // Clean up the file after use
+            // Clear the file after use (safer for Docker mounts than unlinking)
             if (fs.existsSync('captcha_token.txt')) {
-                fs.unlinkSync('captcha_token.txt');
+                fs.writeFileSync('captcha_token.txt', '');
             }
         } catch (e: any) {
             if (e.code === 'CAPTCHA_REQUIRED') {
