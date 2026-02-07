@@ -110,53 +110,100 @@ server.server.on('upgrade', (request, socket, head) => {
     });
 });
 
+let systemReady = false;
+let captchaInfo: { url: string } | null = null;
+
 // Start Server
 const start = async () => {
     try {
-        // Setup Account Manager with Retry Logic
-        const config = {
-            username: process.env.PIKPAK_USERNAME || 'akilaramal@proton.me',
-            password: process.env.PIKPAK_PASSWORD || 'Akila@7463'
-        };
-        accountManager.addAccount(config);
-
-        // Custom initialization loop
-        let connected = false;
-        while (!connected) {
-            try {
-                const token = fs.existsSync('captcha_token.txt')
-                    ? fs.readFileSync('captcha_token.txt', 'utf-8').trim()
-                    : undefined;
-
-                await accountManager.initialize(token);
-                connected = true;
-            } catch (e: any) {
-                if (e.code === 'CAPTCHA_REQUIRED') {
-                    console.error("\n\n====================================================");
-                    console.error("⚠️  CAPTCHA REQUIRED TO LOGIN ⚠️");
-                    console.error("====================================================");
-                    console.error("1. Open this URL in your browser:");
-                    console.error(e.url);
-                    console.error("\n2. Solve the captcha.");
-                    console.error("3. Copy the 'captcha_token' (it might be in the URL redirect or network tab).");
-                    console.error("4. Create/Update 'captcha_token.txt' in the root folder with the token.");
-                    console.error("====================================================\n");
-                    console.log("Waiting for 'captcha_token.txt' to be created/updated...");
-
-                    // Wait for file creation or modification
-                    await waitForCaptchaFile();
-                } else {
-                    throw e;
-                }
-            }
-        }
-
+        // 1. Start listening immediately to avoid 503
         await server.listen({ port: 3000, host: '0.0.0.0' });
         console.log('Server running at http://localhost:3000');
+
+        // 2. Run initialization in background
+        initializeBackground();
     } catch (err) {
         server.log.error(err);
         process.exit(1);
     }
 };
 
+async function initializeBackground() {
+    // Setup Account Manager with Retry Logic
+    const config = {
+        username: process.env.PIKPAK_USERNAME || 'akilaramal@proton.me',
+        password: process.env.PIKPAK_PASSWORD || 'Akila@7463'
+    };
+    accountManager.addAccount(config);
+
+    // Custom initialization loop
+    while (!systemReady) {
+        try {
+            const token = fs.existsSync('captcha_token.txt')
+                ? fs.readFileSync('captcha_token.txt', 'utf-8').trim()
+                : undefined;
+
+            await accountManager.initialize(token);
+            systemReady = true;
+            captchaInfo = null;
+            console.log("System initialized and ready.");
+            // Clean up the file after use
+            if (fs.existsSync('captcha_token.txt')) {
+                fs.unlinkSync('captcha_token.txt');
+            }
+        } catch (e: any) {
+            if (e.code === 'CAPTCHA_REQUIRED') {
+                captchaInfo = { url: e.url };
+                console.error("\n\n====================================================");
+                console.error("⚠️  CAPTCHA REQUIRED TO LOGIN ⚠️");
+                console.error("====================================================");
+                console.error("1. Open this URL in your browser:");
+                console.error(e.url);
+                console.error("\n2. Solve the captcha.");
+                console.error("3. Copy the 'captcha_token' (it might be in the URL redirect or network tab).");
+                console.error("4. Create/Update 'captcha_token.txt' in the root folder with the token.");
+                console.error("====================================================\n");
+                console.log("Waiting for 'captcha_token.txt' to be created/updated...");
+
+                // Wait for file creation or modification
+                await waitForCaptchaFile();
+            } else {
+                console.error("Critical initialization error:", e.message);
+                await new Promise(r => setTimeout(r, 10000)); // Wait before retry
+            }
+        }
+    }
+}
+
+// Add system status endpoint
+server.get('/api/status', async (request, reply) => {
+    return {
+        ready: systemReady,
+        captchaRequired: !!captchaInfo,
+        captchaUrl: captchaInfo?.url
+    };
+});
+
+// Update download endpoint to check readiness
+server.post('/api/download', async (request, reply) => {
+    if (!systemReady) {
+        return reply.code(503).send({ error: 'System initializing. Please solve captcha if required.' });
+    }
+    const { magnet } = request.body as { magnet: string };
+    // ... rest of the logic
+    if (!magnet) {
+        return reply.code(400).send({ error: 'Magnet link is required' });
+    }
+
+    try {
+        const client = accountManager.getNextClient();
+        const taskId = taskQueue.addTask(magnet, client);
+        return { id: taskId };
+    } catch (error: any) {
+        request.log.error(error);
+        return reply.code(500).send({ error: 'Failed to queue task' });
+    }
+});
+
 start();
+

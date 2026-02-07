@@ -9,6 +9,40 @@ const submitBtn = document.getElementById('submit-btn');
 
 let ws;
 
+const initOverlay = document.getElementById('init-overlay');
+const initStatus = document.getElementById('init-status');
+const captchaContainer = document.getElementById('captcha-container');
+const captchaLink = document.getElementById('captcha-link');
+
+// Poll for system readiness
+async function checkSystemStatus() {
+    try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+
+        if (data.ready) {
+            initOverlay.classList.add('hidden');
+        } else {
+            initOverlay.classList.remove('hidden');
+            if (data.captchaRequired) {
+                initStatus.innerText = "CAPTCHA Required to start server";
+                captchaContainer.classList.remove('hidden');
+                captchaLink.href = data.captchaUrl;
+            } else {
+                initStatus.innerText = "System Initializing...";
+                captchaContainer.classList.add('hidden');
+            }
+            // Poll again
+            setTimeout(checkSystemStatus, 3000);
+        }
+    } catch (e) {
+        console.error("Status check failed", e);
+        setTimeout(checkSystemStatus, 5000);
+    }
+}
+
+checkSystemStatus();
+
 submitBtn.addEventListener('click', async () => {
     const magnet = input.value.trim();
     if (!magnet) return alert('Please enter a magnet link');

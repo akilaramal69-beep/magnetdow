@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="background-globes">
         <div class="globe globe-1"></div>
@@ -14,6 +16,15 @@
     </div>
 
     <div class="container glass-card">
+        <div id="init-overlay" class="init-overlay hidden">
+            <div class="spinner"></div>
+            <h2 id="init-status">System Initializing...</h2>
+            <div id="captcha-container" class="hidden">
+                <p>Action Required: Solve CAPTCHA to proceed.</p>
+                <a id="captcha-link" href="#" target="_blank" class="download-btn captcha-btn">Solve CAPTCHA</a>
+                <p class="hint">After solving, follow the README instructions to provide the token.</p>
+            </div>
+        </div>
         <header>
             <h1>TurboLoad</h1>
             <p>Premium High-Speed Downloader</p>
@@ -40,4 +51,5 @@
 
     <script src="app.js"></script>
 </body>
+
 </html>
