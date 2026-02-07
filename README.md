@@ -28,7 +28,21 @@ A high-concurrency web service that allows users to download torrents via PikPak
     npx tsc
     ```
 
-## 🚦 Usage
+## 🐳 Docker Usage
+
+1.  **Build and User Docker Compose:**
+    ```bash
+    docker-compose up -d --build
+    ```
+    The server will be available at `http://localhost:3000`.
+
+2.  **Handling CAPTCHA with Docker:**
+    -   When the container logs show the CAPTCHA URL, solve it in your browser.
+    -   Create a `captcha_token.txt` file in the project root on your host machine.
+    -   Paste the token inside.
+    -   The container (which mounts this file) will detect it and retry login automatically.
+
+## 🚦 Local Usage
 
 1.  **Start the server:**
     ```bash

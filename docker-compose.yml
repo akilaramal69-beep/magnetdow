@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  magnetdow:
+    build: .
+    container_name: magnetdow
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PIKPAK_USERNAME=${PIKPAK_USERNAME}
+      - PIKPAK_PASSWORD=${PIKPAK_PASSWORD}
+    volumes:
+      - ./captcha_token.txt:/app/captcha_token.txt
