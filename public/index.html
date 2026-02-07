@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PikPak Turbo Downloader</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-globes">
+        <div class="globe globe-1"></div>
+        <div class="globe globe-2"></div>
+    </div>
+
+    <div class="container glass-card">
+        <header>
+            <h1>TurboLoad</h1>
+            <p>Premium High-Speed Downloader</p>
+        </header>
+
+        <main id="app">
+            <div class="input-group">
+                <input type="text" id="magnet-input" placeholder="Paste Magnet Link Here..." autocomplete="off">
+                <button id="submit-btn">Download</button>
+            </div>
+
+            <div class="progress-container hidden">
+                <div class="progress-bar-bg">
+                    <div id="progress-bar" class="progress-bar-fill"></div>
+                </div>
+                <div id="status" class="status-text">Connecting...</div>
+            </div>
+
+            <div id="download-section" class="hidden">
+                <a id="download-btn" href="#" target="_blank" class="download-btn">Get File</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+captcha_token.txt
+error_dump.json
+test_login.ts
+debug.js
+verify.js
+verify.ts
+run.js
+debug_login.ts
+test_ws.js
